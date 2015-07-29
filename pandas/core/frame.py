@@ -200,7 +200,9 @@ class DataFrame(NDFrame):
                  copy=False):
         if data is None:
             data = {}
-        if dtype is not None:
+        if isinstance(dtype, dict):
+            dtype = dict((k, self._validate_dtype(v)) for k, v in compat.iteritems(dtype))
+        elif dtype is not None:
             dtype = self._validate_dtype(dtype)
 
         if isinstance(data, DataFrame):
@@ -323,6 +325,8 @@ class DataFrame(NDFrame):
                         v = np.empty(len(index), dtype=object)
                     elif np.issubdtype(dtype, np.flexible):
                         v = np.empty(len(index), dtype=object)
+                    elif isinstance(dtype, dict):
+                        v = np.empty(len(index), dtype=dtype[k])
                     else:
                         v = np.empty(len(index), dtype=dtype)
 
@@ -331,6 +335,15 @@ class DataFrame(NDFrame):
                     v = data[k]
                 data_names.append(k)
                 arrays.append(v)
+        # No data. No columns. But a dict of dtypes provided
+        elif not data.values() and isinstance(dtype, dict):
+            if index is None:
+                index = extract_index(list(data.values()))
+            else:
+                index = _ensure_index(index)
+            keys = dtype.keys()
+            columns = data_names = Index(keys)
+            arrays = [np.empty(len(index), dtype=dtype[k]) for k in columns]
         else:
             keys = list(data.keys())
             if not isinstance(data, OrderedDict):

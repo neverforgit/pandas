@@ -2599,7 +2599,7 @@ def _sanitize_array(data, index, dtype=None, copy=False,
                     raise_cast_failure=False):
     """ sanitize input data to an ndarray, copy if specified, coerce to the dtype if specified """
 
-    if dtype is not None:
+    zif dtype is not None:
         dtype = _coerce_to_dtype(dtype)
 
     if isinstance(data, ma.MaskedArray):
